@@ -1,3 +1,9 @@
+%created by Fabian Gadau for the Prof. Yi Ren's DOI Lab
+
+% number of files you have and the names that they are
+% in this case it will parse files 1.off - 10.off into .json files
+% that work with the algorithm. These files only need to be placed in the
+% workspace.
 for num = 1:10
     
     name = strcat(int2str(num),'.off');
