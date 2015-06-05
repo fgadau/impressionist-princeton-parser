@@ -4,12 +4,14 @@
 % in this case it will parse files 1.off - 10.off into .json files
 % that work with the algorithm. These files only need to be placed in the
 % workspace.
-for num = 1:10
+% for num = 1
+    num = 2;
     
-      name = strcat(int2str(num),'.off');
+    name = strcat(int2str(num),'.off');
     A = importdata(name);
-    newName = strcat(int2str(num),'.json');
-
+    jsonName = strcat(name(1),'.json');
+    jsName = strcat(name(1),'.js');
+    
     vertexArray = zeros(A.data(1,1),3);
     faceArray = zeros(A.data(1,2),3);
 
@@ -17,7 +19,7 @@ for num = 1:10
 
     for i = 2:length(A.data)
         if A.data(i,1)==3
-    %        linebreak = i 
+           linebreak = i ;
            break;
         end
     end
@@ -43,13 +45,31 @@ for num = 1:10
 
     parsed.vertexArray = vertexArray;
     parsed.faceArray = faceArray;
-    parsed.name = newName;
+    parsed.name = jsonName;
 
 
     jsonified = savejson('parsed',parsed);
 
-    fid = fopen(newName, 'wt');
+    fid = fopen(jsonName, 'wt');
     fprintf(fid, jsonified);
     fclose(fid);
+    
+    
+    fid2 = fopen('1.js', 'r');
+    for i = 1:29
+        tline = fgetl(fid);
+        disp(tline)
+    end
+    
+    
+    newline = [];
+    
+    for  i = 1:20
+       newline(length(newline)+1) = char(tline(i));
+    end
+    
+    fclose(fid);
+    
 
-end
+
+% end
