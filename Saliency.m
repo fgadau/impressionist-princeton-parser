@@ -120,5 +120,22 @@ end
 
 Sal.Lambda = eig(Sal.L);
 
+Sal.Lambda = log10(Sal.Lambda);
+Sal.maxMinLambda = [max(Sal.Lambda), min(Sal.Lambda)];
+
+parsed.Lambda = Sal.Lambda;
+parsed.maxMinLambda = Sal.maxMinLambda;
+
+jsonified = savejson('parsed',parsed);
+fid = fopen('1Saliency.json', 'wt');
+fprintf(fid, jsonified);
+fclose(fid);
+
+
+
+
+
+
+
 
 
