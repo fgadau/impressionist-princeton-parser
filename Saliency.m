@@ -8,7 +8,7 @@ close all
 % that work with the algorithm. These files only need to be placed in the
 % workspace.
 
-num = 1;
+num = 381;
     
 name = strcat(int2str(num),'.off');
 ID = importdata(name);
@@ -90,47 +90,87 @@ for i = 1:length(vertexArray)
     j = 1; 
     
     while IndNeighVertices(i,j) ~= 0
-        DisNeighVertices(i,j) = 1/(sqrt(...
+        DisNeighVertices(i,j) = 1/(...
           (vertexArray(i,1)-vertexArray( IndNeighVertices(i,j),1) )^2 + ...
           (vertexArray(i,2)-vertexArray( IndNeighVertices(i,j),2) )^2 + ...
-          (vertexArray(i,3)-vertexArray( IndNeighVertices(i,j),3) )^2 )^2);
-        Sal.D(i) = j;
+          (vertexArray(i,3)-vertexArray( IndNeighVertices(i,j),3) )^2);
+%         Sal.D(i) = j;
         j = j + 1;
     end
     
     s = sum(DisNeighVertices(i,:));
-    
-    for j = 1:min(size(DisNeighVertices))
-        DisNeighVertices(i,j) = DisNeighVertices(i,j)/s;
-    end
+    Sal.D(i) = s;
+%     
+%     for j = 1:min(size(DisNeighVertices))
+%         DisNeighVertices(i,j) = DisNeighVertices(i,j)/s;
+%     end
 %     
 end
 
 Sal.L = zeros(length(vertexArray));
+Sal.W = zeros(length(vertexArray));
 
 for i = 1:length(Sal.A)
     Sal.L(i,i) = Sal.D(i);
     j = 1;
     while IndNeighVertices(i,j) ~= 0
-        Sal.L(i,IndNeighVertices(i,j)) = - DisNeighVertices(i,j);
+        Sal.L(i,IndNeighVertices(i,j)) = -DisNeighVertices(i,j);
+        Sal.W(i,IndNeighVertices(i,j)) = -DisNeighVertices(i,j);;
         j = j + 1;
     end
     
 end
 
-Sal.Lambda = eig(Sal.L);
+[Sal.B, Sal.LambdaDiag] = eig(Sal.L);
+Sal.Lambda = zeros(length(Sal.LambdaDiag),1);
+for i = 1:length(Sal.LambdaDiag)
+    Sal.Lambda(i) = Sal.LambdaDiag(i,i);
+end
 
 Sal.Lambda = log10(Sal.Lambda);
-Sal.maxMinLambda = [max(Sal.Lambda), min(Sal.Lambda)];
+Sal.Lambda(1) = 0;
 
-parsed.Lambda = Sal.Lambda;
+Sal.A = zeros(length(Sal.Lambda), 1);
+%use original normalized values
+buffer = 9;
+for i = 1:length(Sal.Lambda)
+    k = 0;
+    for j = i-buffer:i+buffer      
+        if j > 0 && j < length(Sal.Lambda)
+            Sal.A(i) = Sal.A(i) + Sal.Lambda(j);
+            k = k + 1;
+        end
+    end
+    Sal.A(i) = Sal.A(i)/k;
+end
+
+
+Sal.R = zeros(length(Sal.LambdaDiag));
+for i = 1:length(Sal.R)
+    Sal.R(i,i) = abs(Sal.A(i) - Sal.Lambda(i));
+
+end
+
+Sal.S = Sal.B * Sal.R * Sal.B.' * Sal.W;
+
+Sal.Results = zeros(length(Sal.LambdaDiag),1);
+for i = 1:length(Sal.R)
+    Sal.Results(i) = sum(Sal.S(i,:));
+
+end
+
+
+Sal.maxMinLambda = [max(Sal.Results), min(Sal.Results)];
+
+parsed.Results = Sal.Results;
 parsed.maxMinLambda = Sal.maxMinLambda;
-
+% 
 jsonified = savejson('parsed',parsed);
-fid = fopen('1Saliency.json', 'wt');
+nameString =  strcat(int2str(num),'topo.json');
+fid = fopen(nameString, 'wt');
 fprintf(fid, jsonified);
 fclose(fid);
-
+% 
 
 
 
