@@ -8,11 +8,13 @@ close all
 % that work with the algorithm. These files only need to be placed in the
 % workspace.
 
+% the princeton mesh number
 num = 381;
     
 name = strcat(int2str(num),'.off');
 ID = importdata(name);
 
+% get face indices
 vertexArray = zeros(ID.data(1,1),3);
 faceArray = zeros(ID.data(1,2),3);
 
@@ -43,6 +45,7 @@ end
 
 facesSortedByVertex = zeros(length(vertexArray),25);
 shiftedFaceArray = faceArray + 1;
+
 
 for i = 1:length(faceArray)
     for j = 1:3
@@ -115,7 +118,7 @@ for i = 1:length(Sal.A)
     j = 1;
     while IndNeighVertices(i,j) ~= 0
         Sal.L(i,IndNeighVertices(i,j)) = -DisNeighVertices(i,j);
-        Sal.W(i,IndNeighVertices(i,j)) = -DisNeighVertices(i,j);;
+        Sal.W(i,IndNeighVertices(i,j)) = -DisNeighVertices(i,j);
         j = j + 1;
     end
     
@@ -128,15 +131,15 @@ for i = 1:length(Sal.LambdaDiag)
 end
 
 Sal.Lambda = log10(Sal.Lambda);
-Sal.Lambda(1) = 0;
+%Sal.Lambda(1) = 0;
 
 Sal.A = zeros(length(Sal.Lambda), 1);
 %use original normalized values
-buffer = 9;
+buffer = 4;
 for i = 1:length(Sal.Lambda)
     k = 0;
     for j = i-buffer:i+buffer      
-        if j > 0 && j < length(Sal.Lambda)
+        if j > 0 && j <= length(Sal.Lambda)
             Sal.A(i) = Sal.A(i) + Sal.Lambda(j);
             k = k + 1;
         end
@@ -147,15 +150,15 @@ end
 
 Sal.R = zeros(length(Sal.LambdaDiag));
 for i = 1:length(Sal.R)
-    Sal.R(i,i) = abs(Sal.A(i) - Sal.Lambda(i));
+    Sal.R(i,i) = exp(abs(Sal.A(i) - Sal.Lambda(i)));
 
 end
 
-Sal.S = Sal.B * Sal.R * Sal.B.' * Sal.W;
+Sal.S = Sal.B * Sal.R * Sal.B' * Sal.W;
 
 Sal.Results = zeros(length(Sal.LambdaDiag),1);
 for i = 1:length(Sal.R)
-    Sal.Results(i) = sum(Sal.S(i,:));
+    Sal.Results(i) =Sal.S(1,i); %sum(Sal.S(i,:));
 
 end
 
